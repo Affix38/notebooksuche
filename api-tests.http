@@ -1,0 +1,224 @@
+### 1. Alle Notebooks abrufen (GET)
+GET http://localhost:8080/api/notebooks
+Accept: application/json
+
+### 2. Notebook nach ID abrufen (GET)
+GET http://localhost:8080/api/notebooks/1
+Accept: application/json
+
+### 3. Suche nach Marke (GET)
+GET http://localhost:8080/api/notebooks/suche?marke=Apple
+Accept: application/json
+
+### 4. Ein neues Notebook erstellen (POST)
+POST http://localhost:8080/api/notebooks
+Content-Type: application/json
+
+{
+  "marke": "Dell",
+  "modell": "XPS 15",
+  "ean": "0194827103847",
+  "uvpPreis": 1899.99,
+  "beschreibung": "15.6 Zoll OLED Touch-Display, Intel Core i7, 32 GB RAM, 1 TB SSD"
+}
+
+### 5. Beispieldaten initialisieren (POST)
+POST http://localhost:8080/api/notebooks/beispieldaten
+Accept: text/plain
+
+### 6. Validierungstest: Ungültige UVP (Erwartet: 400 Bad Request)
+POST http://localhost:8080/api/notebooks
+Content-Type: application/json
+
+{
+  "marke": "TestMarke",
+  "modell": "Fehlerhaftes Modell",
+  "ean": "9999999999999",
+  "uvpPreis": -50.00,
+  "beschreibung": "Dieser Laptop hat einen ungültige negative UVP."
+}
+
+### 7. Notebook ohne UVP erstellen (Erwartet: 201, uvpPreis = null)
+POST http://localhost:8080/api/notebooks
+Content-Type: application/json
+
+{
+  "marke": "HP",
+  "modell": "Pavilion 15",
+  "ean": "0190000000011",
+  "beschreibung": "Notebook ohne bekannte UVP"
+}
+
+###
+# ============================================================
+# Shops und Angebote
+# Voraussetzung: Tests 5 und 8 (Beispieldaten) wurden ausgeführt.
+# Die IDs (Notebook 1, Shop 1-3) gelten für eine frische Datenbank, bei Bedarf anpassen.
+# ============================================================
+
+### 8. Beispieldaten für Shops und Angebote (POST)
+POST http://localhost:8080/api/angebote/beispieldaten
+Accept: text/plain
+
+### 9. Alle Shops abrufen (GET)
+GET http://localhost:8080/api/shops
+Accept: application/json
+
+### 10. Shop nach ID abrufen (GET)
+GET http://localhost:8080/api/shops/1
+Accept: application/json
+
+### 11. Neuen Shop erstellen (POST, Erwartet: 201)
+POST http://localhost:8080/api/shops
+Content-Type: application/json
+
+{
+  "name": "Alternate",
+  "websiteUrl": "https://www.alternate.de"
+}
+
+### 12. Doppelter Shop-Name, andere Schreibweise (Erwartet: 400)
+POST http://localhost:8080/api/shops
+Content-Type: application/json
+
+{
+  "name": "alternate",
+  "websiteUrl": "https://www.alternate.de"
+}
+
+### 13. Inaktiven Shop erstellen (Erwartet: 201, aktiv = false)
+POST http://localhost:8080/api/shops
+Content-Type: application/json
+
+{
+  "name": "Altshop",
+  "websiteUrl": "https://altshop.de",
+  "aktiv": false
+}
+
+### 14. Angebote eines Notebooks, nach Preis sortiert (GET)
+GET http://localhost:8080/api/notebooks/1/angebote
+Accept: application/json
+
+### 15. Preisvergleich eines Notebooks (GET, Erwartet: günstigster Preis 1029.90 bei frischen Beispieldaten)
+GET http://localhost:8080/api/notebooks/1/preisvergleich
+Accept: application/json
+
+### 16. Preisvergleich Notebook 2 und 3 (GET)
+GET http://localhost:8080/api/notebooks/2/preisvergleich
+Accept: application/json
+
+###
+GET http://localhost:8080/api/notebooks/3/preisvergleich
+Accept: application/json
+
+### 17. Neues Angebot erstellen (POST, Erwartet: 201; Shop 4 = Alternate)
+POST http://localhost:8080/api/angebote
+Content-Type: application/json
+
+{
+  "notebookId": 1,
+  "shopId": 4,
+  "preis": 999.00,
+  "artikelUrl": "https://www.alternate.de/macbook-air-m2",
+  "verfuegbarkeit": "Sofort lieferbar"
+}
+
+### 18. Doppeltes Angebot desselben Shops für dasselbe Notebook (Erwartet: 400)
+POST http://localhost:8080/api/angebote
+Content-Type: application/json
+
+{
+  "notebookId": 1,
+  "shopId": 4,
+  "preis": 999.00,
+  "artikelUrl": "https://www.alternate.de/macbook-air-m2",
+  "verfuegbarkeit": "Sofort lieferbar"
+}
+
+### 19. Ungültiger Preis (Erwartet: 400)
+POST http://localhost:8080/api/angebote
+Content-Type: application/json
+
+{
+  "notebookId": 2,
+  "shopId": 4,
+  "preis": -5,
+  "artikelUrl": "https://www.alternate.de/thinkpad",
+  "verfuegbarkeit": "Sofort lieferbar"
+}
+
+### 20. Leere Artikel-URL (Erwartet: 400)
+POST http://localhost:8080/api/angebote
+Content-Type: application/json
+
+{
+  "notebookId": 2,
+  "shopId": 4,
+  "preis": 1200,
+  "artikelUrl": "   ",
+  "verfuegbarkeit": "Sofort lieferbar"
+}
+
+### 21. Fehlende Shop-ID (Erwartet: 400)
+POST http://localhost:8080/api/angebote
+Content-Type: application/json
+
+{
+  "notebookId": 2,
+  "preis": 1200,
+  "artikelUrl": "https://www.alternate.de/thinkpad",
+  "verfuegbarkeit": "Sofort lieferbar"
+}
+
+### 22. Unbekanntes Notebook (Erwartet: 404)
+POST http://localhost:8080/api/angebote
+Content-Type: application/json
+
+{
+  "notebookId": 999,
+  "shopId": 4,
+  "preis": 1200,
+  "artikelUrl": "https://www.alternate.de/x",
+  "verfuegbarkeit": "Sofort lieferbar"
+}
+
+### 23. Unbekannter Shop (Erwartet: 404)
+POST http://localhost:8080/api/angebote
+Content-Type: application/json
+
+{
+  "notebookId": 2,
+  "shopId": 999,
+  "preis": 1200,
+  "artikelUrl": "https://www.alternate.de/x",
+  "verfuegbarkeit": "Sofort lieferbar"
+}
+
+### 24. Inaktiver Shop (Erwartet: 400; Shop-ID 5 = Altshop aus Test 13, ID anpassen)
+POST http://localhost:8080/api/angebote
+Content-Type: application/json
+
+{
+  "notebookId": 2,
+  "shopId": 5,
+  "preis": 1200,
+  "artikelUrl": "https://altshop.de/x",
+  "verfuegbarkeit": "Sofort lieferbar"
+}
+
+### 25. Unbekannter Shop per GET (Erwartet: 404)
+GET http://localhost:8080/api/shops/999
+Accept: application/json
+
+### 26. Angebote und Preisvergleich für unbekanntes Notebook (Erwartet: 404)
+GET http://localhost:8080/api/notebooks/999/angebote
+Accept: application/json
+
+###
+GET http://localhost:8080/api/notebooks/999/preisvergleich
+Accept: application/json
+
+### 27. Notebook ohne Angebote (Erwartet: guenstigsterPreis = null, anzahlAngebote = 0; ID des Notebooks aus Test 7 einsetzen)
+GET http://localhost:8080/api/notebooks/4/preisvergleich
+Accept: application/json
